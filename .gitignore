@@ -1,0 +1,15 @@
+# Archivos de cache de Python
+__pycache__/
+*.pyc
+
+# Archivos temporales de audio
+*.wav
+
+# Entornos virtuales
+venv/
+.venv/
+
+# Archivos de PyInstaller
+dist/
+build/
+*.spec
