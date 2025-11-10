@@ -13,4 +13,3 @@ venv/
 dist/
 build/
 *.spec
-ffmpeg/
