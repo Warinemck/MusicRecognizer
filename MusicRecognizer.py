@@ -5,12 +5,10 @@ from shazamio import Shazam
 try:
     from winsdk.windows.media.control import GlobalSystemMediaTransportControlsSessionManager as SessionManager
     from winsdk.windows.media import MediaPlaybackType
-    from winsdk.windows.media import control as media_control # <-- AÑADE ESTA LÍNEA
-    # ELIMINA la línea que daba error (la de GetMediaPropertiesStatus)
+    from winsdk.windows.media import control as media_control
     WINS_SDK_DISPONIBLE = True
 except ImportError:
     WINS_SDK_DISPONIBLE = False
-# ------------------------------------------------
 import tkinter as tk
 import tkinter as tk
 from tkinter import font  # Importar para fuentes modernas
@@ -29,19 +27,17 @@ import os
 from pynput import keyboard
 import math  # Para las funciones de easing
 
-# Variable global para la función de logging (se definirá después)
 agregar_log = None
 
 import ctypes
 
-# --- (Las funciones y clases de aquí hasta "ToggleSwitch" no han cambiado) ---
 
 def habilitar_antialiasing():
     """Habilita el antialiasing para las ventanas en Windows"""
     try:
         ctypes.windll.shcore.SetProcessDpiAwareness(1)
         try:
-            ctypes.windll.shcore.SetProcessDpiAwareness(2)  # Per monitor DPI aware
+            ctypes.windll.shcore.SetProcessDpiAwareness(2)
         except:
             pass
         print("Antialiasing habilitado para Windows")
@@ -304,11 +300,9 @@ class VentanaDisco:
         self.cargar_caja_vinilo() 
         self.cargar_fondo_caja()
 
-        # --- Estado inicial: Oculto ---
         self.caja_elementos_visible = False
         self.canvas.itemconfig(self.fondo_caja_item, state='hidden')
         self.canvas.itemconfig(self.caja_item, state='hidden')
-        # -----------------------------
         
         self.disco_img = None
         self.disco_rotacion = 0
@@ -317,12 +311,9 @@ class VentanaDisco:
         self.is_visible = True
 
         self.is_animating_resize = False
-        
-        # --- NUEVO: Estado de Animación ---
         self.anim_alternativa_active = False 
 
         self.caja_toggle_widget = caja_toggle_widget
-        # ---------------------------------
         
         self.animar_disco()
         self.root.deiconify()
@@ -350,8 +341,7 @@ class VentanaDisco:
             if agregar_log: agregar_log("- No se encontro fondo_caja.png.")
         except Exception as e:
             if agregar_log: agregar_log(f"- Error al cargar la imagen: {e}")
-    
-    # --- MÉTODO NUEVO ---
+
     def set_anim_alternativa(self, state: bool):
         """Establece el modo de animación (True=Alternativa, False=Normal)."""
         self.anim_alternativa_active = state
@@ -359,12 +349,10 @@ class VentanaDisco:
             if agregar_log: agregar_log("- Animación alternativa: ACTIVADA")
         else:
             if agregar_log: agregar_log("- Animación alternativa: DESACTIVADA")
-    # --------------------
 
     def toggle_caja_completa(self):
         """Muestra u oculta la caja Y el fondo de la caja."""
         if self.caja_elementos_visible:
-            # --- Va a Ocultar ---
             self.canvas.itemconfig(self.fondo_caja_item, state='hidden')
             self.canvas.itemconfig(self.caja_item, state='hidden') 
             self.caja_elementos_visible = False
@@ -373,7 +361,6 @@ class VentanaDisco:
             self._animar_ventana(target_width=350)
             
         else:
-            # --- Va a Mostrar ---
             self.canvas.itemconfig(self.fondo_caja_item, state='normal')
             self.canvas.itemconfig(self.caja_item, state='normal') 
             self.caja_elementos_visible = True
@@ -400,7 +387,6 @@ class VentanaDisco:
         # Calcular el cambio total
         delta_width = target_width - start_width
 
-        # --- Esta es la función que pediste ---
         def animar_paso(step):
             # Asegurarse de que la ventana exista y la app esté corriendo
             if not self.running or not self.root.winfo_exists():
@@ -412,7 +398,7 @@ class VentanaDisco:
                 return
 
             progress = step / steps
-            eased_progress = ease_in_out_quad(progress) # Usamos tu easing
+            eased_progress = ease_in_out_quad(progress)
 
             # Calcular el nuevo ancho
             current_width = int(start_width + (delta_width * eased_progress))
@@ -427,7 +413,6 @@ class VentanaDisco:
                 # --- Reactivar en caso de error ---
                 if self.caja_toggle_widget:
                     self.caja_toggle_widget.config(state='normal')
-                # --------------------------------
                 return
 
             if step < steps:
@@ -442,7 +427,6 @@ class VentanaDisco:
                 # --- Reactivar al finalizar ---
                 if self.caja_toggle_widget:
                     self.caja_toggle_widget.config(state='normal')
-                # ------------------------------
 
         # Iniciar la animación
         animar_paso(0)
@@ -479,15 +463,13 @@ class VentanaDisco:
     def animacion_entrada(self):
         """Animación de entrada con lógica de estado."""
         
-        # --- LÓGICA MODIFICADA ---
         target_x = 25 # El destino siempre es 25
         
-        # Si la anim. alternativa está activa Y la caja está visible...
+        # Si la anim. alternativa está activa Y la caja está visible
         if self.anim_alternativa_active and self.caja_elementos_visible:
             start_x = 180 # Empezar "dentro" de la caja
         else:
             start_x = -400 # Empezar fuera de la pantalla
-        # -------------------------
             
         duration_ms = 600
         steps = 40
@@ -537,7 +519,6 @@ class VentanaDisco:
             if step < steps:
                 self.root.after(step_delay, lambda: animar_paso(step + 1))
             else:
-                # --- ¡AQUÍ ESTÁ EL ARREGLO! ---
                 # Solo borra la imagen si el destino era fuera de la pantalla
                 if target_x == -400:
                     self.disco_img = None
@@ -545,7 +526,6 @@ class VentanaDisco:
                     self.current_image_tk = None
                 
                 if agregar_log: agregar_log("- Vinilo / texto ocultos")
-                # ---------------------------------
         
         animar_paso(0)
 
@@ -712,19 +692,15 @@ class NowPlaying:
         self.dummy_toggle_widget = dummy_toggle_widget
         self.anim_alternativa_toggle_widget = anim_alternativa_toggle_widget
         self.auto_event_toggle_widget = auto_event_toggle_widget
-        # ---------------------------------------------
 
-        # --- Ahora sí puedes usarlas ---
         self.ventana_disco = VentanaDisco(caja_toggle_widget=self.caja_toggle_widget) 
         self.ventana_texto = VentanaTexto()
-        # ---------------------------------------------
         
         self.cancion_actual = None
         self.api_manager = APIManager()
         self.dummy_is_active = False
         
         self.hotkey = GlobalHotkey()
-# ... (el resto de la función sigue igual)
         self.hotkey.start(
             recognition_callback=self.trigger_shazam_recognition,
             exit_callback=self.trigger_exit_animation
@@ -733,7 +709,6 @@ class NowPlaying:
         self.last_activation_time = 0
         self.activation_cooldown = 2
 
-        # --- NUEVO: Estado del monitor de EVENTOS ---
         self.auto_event_is_active = False
         self.media_event_thread = None
         self.async_loop = None           # Loop para el hilo de eventos
@@ -745,9 +720,7 @@ class NowPlaying:
         if not WINS_SDK_DISPONIBLE:
             if self.auto_event_toggle_widget:
                 self.auto_event_toggle_widget.config(state='disabled')
-        # ------------------------------------------
 
-    # --- MÉTODO NUEVO (Reemplaza a toggle_auto_reconocimiento) ---
     def toggle_auto_event_listener(self):
         """Inicia o detiene el monitor de eventos de media."""
         if not self.auto_event_toggle_widget or not WINS_SDK_DISPONIBLE:
@@ -758,7 +731,6 @@ class NowPlaying:
         else:
             self.stop_media_event_listener()
 
-    # --- MÉTODO NUEVO (Reemplaza a start_audio_monitor) ---
     def start_media_event_listener(self):
         """Inicia el hilo que escucha los eventos de media de Windows."""
         if self.media_event_thread is not None and self.media_event_thread.is_alive():
@@ -769,7 +741,6 @@ class NowPlaying:
         self.media_event_thread = threading.Thread(target=self._media_event_loop, daemon=True)
         self.media_event_thread.start()
 
-    # --- MÉTODO NUEVO (Reemplaza a stop_audio_monitor) ---
     def stop_media_event_listener(self):
         """Detiene el hilo del monitor de eventos."""
         self.auto_event_is_active = False
@@ -781,7 +752,6 @@ class NowPlaying:
         self.media_event_thread = None
         if agregar_log: agregar_log("- Monitor de eventos multimedia detenido.")
 
-    # --- MÉTODO NUEVO (Hilo principal del monitor de eventos) ---
     def _media_event_loop(self):
         """
         Función que corre en un hilo. Inicia un loop de asyncio
@@ -804,7 +774,6 @@ class NowPlaying:
             self.async_loop.close()
             self.async_loop = None
 
-    # --- MÉTODO NUEVO (Se ejecuta en el hilo de asyncio) ---
     async def _setup_event_handlers(self):
         """Se conecta al SessionManager de Windows."""
         try:
@@ -812,7 +781,6 @@ class NowPlaying:
             # Suscribirse al evento de "cambio de sesión"
             self.manager.add_current_session_changed(self._on_session_changed_handler)
             
-            # --- LÓGICA CORREGIDA ---
             # Procesar la sesión que ya esté activa al iniciar
             self.current_session = self.manager.get_current_session()
             
@@ -822,13 +790,11 @@ class NowPlaying:
                 self.root.after(0, lambda: agregar_log("- Monitor: Suscrito a la sesión activa."))
                 # Comprobar la canción actual inmediatamente
                 asyncio.run_coroutine_threadsafe(self._check_media_properties(self.current_session), self.async_loop)
-            # --- FIN DE CORRECCIÓN ---
                 
             self.root.after(0, lambda: agregar_log("- Monitor de eventos: Abierto"))
         except Exception as e:
              self.root.after(0, lambda: agregar_log(f"- Error al conectar con WinSDK: {e}"))
 
-    # --- MÉTODO NUEVO (Se ejecuta en el hilo de asyncio) ---
     async def _cleanup_event_handlers(self):
         """Se desconecta de los eventos para una salida limpia."""
         if self.current_session:
@@ -846,7 +812,6 @@ class NowPlaying:
         self.last_media_title = None
         self.root.after(0, lambda: agregar_log("- Monitor de eventos: Cerrado"))
 
-    # --- MÉTODO NUEVO (Handler llamado por WinSDK en hilo asyncio) ---
     def _on_session_changed_handler(self, sender, args): # Ignoramos sender y args
         """Ocurre cuando cambias de app (ej. de Spotify a Chrome)."""
         if not self.auto_event_is_active: return
@@ -870,20 +835,16 @@ class NowPlaying:
                 self.current_session.add_media_properties_changed(self._on_media_properties_changed_handler)
                 self.root.after(0, lambda: agregar_log("- Monitor: Suscrito a nueva sesión."))
                 
-                # --- LÓGICA CORREGIDA ---
-                # Le decimos que use la sesión que acabamos de guardar
                 asyncio.run_coroutine_threadsafe(self._check_media_properties(None), self.async_loop)
             except Exception as e:
                 pass
                 
-    # --- MÉTODO NUEVO (Handler llamado por WinSDK en hilo asyncio) ---
     def _on_media_properties_changed_handler(self, sender, args): # Ignoramos sender y args
         """Ocurre cuando la canción cambia DENTRO de una app."""
         if not self.auto_event_is_active: 
             return
         asyncio.run_coroutine_threadsafe(self._check_media_properties(None), self.async_loop)
 
-    # --- MÉTODO NUEVO (Función Async que comprueba la canción) ---
     async def _check_media_properties(self, session_arg): # 'session_arg' ahora se ignora
         """Obtiene los metadatos de la sesión y decide si lanzar Shazam."""
         
@@ -907,7 +868,7 @@ class NowPlaying:
 
             artist = props.artist
             full_title = f"{artist} - {title}"
-            safe_type_name = props.playback_type.name # Ahora esto es seguro
+            safe_type_name = props.playback_type.name 
 
             if full_title == self.last_logged_title:
                 return
@@ -932,12 +893,11 @@ class NowPlaying:
             self.root.after(0, lambda: agregar_log(f"- Error al chequear propiedades: {error_message}"))
             pass
 
-    # --- MÉTODO MODIFICADO ---
-    def trigger_shazam_recognition(self): # Ya no necesita 'triggered_by_auto_monitor'
+    def trigger_shazam_recognition(self):
         
         current_time = time.time()
         
-        # Cooldown de activación (evita spam de hotkey)
+        # Cooldown de activación
         if current_time - self.last_activation_time < self.activation_cooldown:
             return
         
@@ -960,10 +920,6 @@ class NowPlaying:
         thread = threading.Thread(target=self._execute_shazam_recognition, daemon=True)
         thread.start()
 
-    # ... (trigger_exit_animation, _execute_exit_animation, _execute_shazam_recognition,
-    #      actualizar_interfaz permanecen SIN CAMBIOS) ...
-
-    # --- MÉTODO MODIFICADO ---
     def cleanup(self):
         if self.hotkey:
             self.hotkey.stop()
@@ -1000,14 +956,12 @@ class NowPlaying:
                 self.cancion_actual = "DUMMY_MODE" 
 
             self.root.after(500, show_dummy)
-
-    # --- MÉTODO NUEVO ---
+    # -- Animacion nueva --
     def toggle_anim_alternativa(self):
         """Pasa el estado de la animación alternativa a la VentanaDisco."""
         if self.anim_alternativa_toggle_widget and self.ventana_disco:
             is_on = self.anim_alternativa_toggle_widget.is_on
             self.ventana_disco.set_anim_alternativa(is_on)
-    # --------------------
 
     def toggle_caja_completa(self):
         """Controla el toggle de la caja Y el de la animación alternativa."""
@@ -1034,7 +988,6 @@ class NowPlaying:
                 # Sincroniza el estado en VentanaDisco también
                 if self.ventana_disco:
                     self.ventana_disco.set_anim_alternativa(False)
-        # -------------------------------
 
         # Llama a la acción original de VentanaDisco
         if self.ventana_disco:
@@ -1083,7 +1036,7 @@ class NowPlaying:
             self.cancion_actual = None
             self.dummy_is_active = False
             
-            # Sincroniza la UI del toggle (ponlo en OFF)
+            # Sincroniza la UI del toggle
             if self.dummy_toggle_widget:
                 self.dummy_toggle_widget.set_state(False, animate=True)
             
@@ -1172,9 +1125,6 @@ class NowPlaying:
         if self.hotkey:
             self.hotkey.stop()
 
-# ---------------------------------------------------------------
-# --- 🎨 NUEVA CLASE: ToggleSwitch (Botón moderno) ---
-# ---------------------------------------------------------------
 class ToggleSwitch(tk.Canvas):
     """Un widget de interruptor moderno hecho con Canvas."""
     def __init__(self, parent, command=None, initial_state=False, **kwargs):
@@ -1243,10 +1193,6 @@ class ToggleSwitch(tk.Canvas):
         
         _step(0)
 
-# ---------------------------------------------------------------
-# --- FIN DE ToggleSwitch ---
-# ---------------------------------------------------------------
-
 def signal_handler(sig, frame):
     if agregar_log: agregar_log("\n- Programa finalizado por el usuario")
     if 'app' in globals():
@@ -1269,7 +1215,6 @@ if __name__ == "__main__":
     
     root = tk.Tk()
 
-    # --- 🎨 Paleta de colores y Fuentes ---
     BG_COLOR = "#2B2B2B"       # Fondo oscuro
     CARD_COLOR = "#3C3C3C"     # Fondo de tarjeta
     TEXT_COLOR = "#E0E0E0"     # Texto claro
@@ -1288,7 +1233,6 @@ if __name__ == "__main__":
         BODY_FONT = ("Arial", 10)
         SMALL_FONT = ("Arial", 9)
         LOG_FONT = ("Consolas", 9)
-    # ---------------------------------
     
     try:
         root.tk.call('tk', 'scaling', 1.5)
@@ -1359,7 +1303,6 @@ if __name__ == "__main__":
     anim_alternativa_toggle = ToggleSwitch(anim_frame, command=on_toggle_anim_alternativa, initial_state=False)
     anim_alternativa_toggle.pack(side="right")
     anim_alternativa_toggle.config(state='disabled') # Empezar deshabilitado
-    # --- FIN DEL BLOQUE NUEVO ---
 
     auto_event_frame = tk.Frame(control_card, bg=CARD_COLOR)
     auto_event_frame.pack(fill="x", pady=(10, 0)) 
